@@ -178,11 +178,15 @@
 
         // first time matrame ID create avvali
         if (!generatedTSCTId || lastMobileNumber !== mobile) {
-          let currentId = parseInt(localStorage.getItem("tsctId") || 1);
+          // temporary browser session counter
+          if (!window.tempTsctCounter) {
+            window.tempTsctCounter = 1;
+          }
 
-          generatedTSCTId = "TSCT" + String(currentId).padStart(5, "0");
+          generatedTSCTId =
+            "TSCT" + String(window.tempTsctCounter).padStart(5, "0");
 
-          localStorage.setItem("tsctId", currentId + 1);
+          window.tempTsctCounter++;
 
           lastMobileNumber = mobile;
         }
