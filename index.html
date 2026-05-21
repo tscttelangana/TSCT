@@ -177,19 +177,6 @@
         const mobile = document.getElementById("mobile").value;
 
         // first time matrame ID create avvali
-        if (!generatedTSCTId || lastMobileNumber !== mobile) {
-          // temporary browser session counter
-          if (!window.tempTsctCounter) {
-            window.tempTsctCounter = 1;
-          }
-
-          generatedTSCTId =
-            "TSCT" + String(window.tempTsctCounter).padStart(5, "0");
-
-          window.tempTsctCounter++;
-
-          lastMobileNumber = mobile;
-        }
 
         // text styling
         ctx.fillStyle = "#000";
@@ -233,19 +220,41 @@
           "https://script.google.com/macros/s/AKfycbxjdNk7k1iBmtTjflDlAsWoQAu7eTXJI_p22dOto37m94kymOZqTM1jenEYd8gm2FFqHg/exec",
           {
             method: "POST",
-            mode: "no-cors",
             body: new URLSearchParams({
-              tsctId: generatedTSCTId,
-              name: name,
-              job: job,
-              empid: empid,
-              school: school,
-              mandal: mandal,
-              district: district,
-              mobile: mobile,
+              name,
+              job,
+              empid,
+              school,
+              mandal,
+              district,
+              mobile,
             }),
           },
-        );
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            generatedTSCTId = data.tsctId;
+
+            lastMobileNumber = mobile;
+
+            // redraw card
+            drawTemplate();
+
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 38px Arial";
+
+            ctx.fillText(name, 265, 265);
+            ctx.fillText(job, 265, 318);
+            ctx.fillText(empid, 265, 375);
+            ctx.fillText(school, 265, 430);
+            ctx.fillText(mandal, 265, 485);
+            ctx.fillText(district, 265, 540);
+            ctx.fillText(mobile, 265, 610);
+
+            ctx.font = "bold 40px Arial";
+
+            ctx.fillText(generatedTSCTId, 730, 635);
+          });
 
         console.log("Saved to Google Sheet");
       }
