@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="te">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TSCT ID Card Generator</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 15px;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: auto;
+      }
+
+      h2 {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+
+      .form-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-size: 16px;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      .generate {
+        background: #0d6efd;
+        color: #fff;
+      }
+
+      .download {
+        background: #198754;
+        color: #fff;
+      }
+
+      .print {
+        background: #ff9800;
+        color: #fff;
+      }
+
+      .preview {
+        margin-top: 20px;
+      }
+
+      canvas {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #ccc;
+        background: #fff;
+      }
+      .logo {
+        width: 180px;
+        height: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div style="text-align: center">
+        <img class="logo" src="logo.png" alt="tsct" />
+      </div>
+      <h2>TSCT ID Card</h2>
+
+      <div class="form-box">
+        <div class="inner_form_box">
+          <input type="text" id="name" placeholder="పూర్తి పేరు" />
+          <input type="text" id="job" placeholder="ఉద్యోగం" />
+          <input type="text" id="empid" placeholder="ఎంప్లాయి ఐడి" />
+          <input type="text" id="school" placeholder="పాఠశాల" />
+          <input type="text" id="mandal" placeholder="మండలం" />
+          <input type="text" id="district" placeholder="జిల్లా" />
+          <input type="text" id="mobile" placeholder="సెల్ నెంబర్" />
+          <!-- <button type="button" onclick="searchMember()">Search Member</button> -->
+
+          <input type="file" id="photo" accept="image/*" />
+        </div>
+
+        <!-- <h3>Search Member</h3>
+
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Mobile Number / TSCT ID"
+        />
+
+        <button type="button" onclick="searchMember()">Search Member</button>
+
+        <hr style="margin: 20px 0" /> -->
+
+        <button class="generate" onclick="generateCard()">Generate Card</button>
+
+        <button class="download" onclick="downloadCard()">Download PNG</button>
+
+        <button class="print" onclick="editCard()">Edit Card</button>
+      </div>
+
+      <div class="preview">
+        <canvas id="cardCanvas"></canvas>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("cardCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let lastMobileNumber = "";
+
+      // same member ki same ID maintain
+      let generatedTSCTId = null;
+
+      // template image
+      const template = new Image();
+      template.src = "card-template.jpg";
+
+      template.onload = () => {
+        canvas.width = template.width;
+        canvas.height = template.height;
+        drawTemplate();
+      };
+
+      template.onerror = () => {
+        alert("Image load avvaledu. Check image name/path");
+      };
+
+      function drawTemplate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(template, 0, 0);
+      }
+
+      function generateCard() {
+        drawTemplate();
+
+        const name = document.getElementById("name").value;
+
+        const job = document.getElementById("job").value;
+
+        const empid = document.getElementById("empid").value;
+
+        const school = document.getElementById("school").value;
+
+        const mandal = document.getElementById("mandal").value;
+
+        const district = document.getElementById("district").value;
+
+        const mobile = document.getElementById("mobile").value;
+
+        // first time matrame ID create avvali
+        if (!generatedTSCTId || lastMobileNumber !== mobile) {
+          let currentId = parseInt(localStorage.getItem("tsctId") || 1);
+
+          generatedTSCTId = "TSCT" + String(currentId).padStart(5, "0");
+
+          localStorage.setItem("tsctId", currentId + 1);
+
+          lastMobileNumber = mobile;
+        }
+
+        // text styling
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 38px Arial";
+
+        // field alignment
+        ctx.fillText(name, 265, 265);
+        ctx.fillText(job, 265, 318);
+        ctx.fillText(empid, 265, 375);
+        ctx.fillText(school, 265, 430);
+        ctx.fillText(mandal, 265, 485);
+        ctx.fillText(district, 265, 540);
+        ctx.fillText(mobile, 265, 610);
+
+        // TSCT ID
+        ctx.font = "bold 40px Arial";
+        ctx.fillText(generatedTSCTId, 730, 635);
+
+        // photo upload
+        const photoInput = document.getElementById("photo");
+
+        if (photoInput.files[0]) {
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            const img = new Image();
+
+            img.onload = function () {
+              ctx.drawImage(img, 895, 80, 165, 220);
+            };
+
+            img.src = e.target.result;
+          };
+
+          reader.readAsDataURL(photoInput.files[0]);
+        }
+
+        // form hide
+        document.querySelector(".inner_form_box").style.display = "none";
+        fetch(
+          "https://script.google.com/macros/s/AKfycbxjdNk7k1iBmtTjflDlAsWoQAu7eTXJI_p22dOto37m94kymOZqTM1jenEYd8gm2FFqHg/exec",
+          {
+            method: "POST",
+            mode: "no-cors",
+            body: new URLSearchParams({
+              tsctId: generatedTSCTId,
+              name: name,
+              job: job,
+              empid: empid,
+              school: school,
+              mandal: mandal,
+              district: district,
+              mobile: mobile,
+            }),
+          },
+        );
+
+        console.log("Saved to Google Sheet");
+      }
+
+      // download PNG
+      function downloadCard() {
+        const link = document.createElement("a");
+
+        link.download = generatedTSCTId + ".png";
+
+        link.href = canvas.toDataURL("image/png");
+
+        link.click();
+      }
+
+      // edit same card
+      function editCard() {
+        document.querySelector(".inner_form_box").style.display = "block";
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }
+
+      function searchMember() {
+        const searchValue = document.getElementById("searchInput").value.trim();
+
+        if (!searchValue) {
+          alert("Enter Mobile Number or TSCT ID");
+          return;
+        }
+
+        // hidden iframe trick (CORS avoid)
+        const form = document.createElement("form");
+
+        form.method = "POST";
+        form.action =
+          "https://script.google.com/macros/s/AKfycbxjdNk7k1iBmtTjflDlAsWoQAu7eTXJI_p22dOto37m94kymOZqTM1jenEYd8gm2FFqHg/exec";
+
+        form.target = "hiddenFrame";
+
+        form.style.display = "none";
+
+        const actionInput = document.createElement("input");
+
+        actionInput.name = "action";
+
+        actionInput.value = "search";
+
+        form.appendChild(actionInput);
+
+        const searchInput = document.createElement("input");
+
+        searchInput.name = "search";
+
+        searchInput.value = searchValue;
+
+        form.appendChild(searchInput);
+
+        const iframe = document.createElement("iframe");
+
+        iframe.name = "hiddenFrame";
+
+        iframe.style.display = "none";
+
+        document.body.appendChild(iframe);
+
+        document.body.appendChild(form);
+
+        iframe.onload = function () {
+          try {
+            const text = iframe.contentDocument.body.innerText;
+
+            const data = JSON.parse(text);
+
+            if (!data.found) {
+              alert("Member not found");
+
+              return;
+            }
+
+            generatedTSCTId = data.tsctId;
+
+            lastMobileNumber = data.mobile;
+
+            document.getElementById("name").value = data.name;
+
+            document.getElementById("job").value = data.job;
+
+            document.getElementById("empid").value = data.empid;
+
+            document.getElementById("school").value = data.school;
+
+            document.getElementById("mandal").value = data.mandal;
+
+            document.getElementById("district").value = data.district;
+
+            document.getElementById("mobile").value = data.mobile;
+
+            alert("Member found");
+          } catch (e) {
+            console.error(e);
+
+            alert("Search failed");
+          }
+        };
+
+        form.submit();
+      }
+
+      // next member
+    </script>
+  </body>
+</html>
