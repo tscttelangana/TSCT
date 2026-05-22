@@ -83,6 +83,86 @@
         width: 180px;
         height: auto;
       }
+      .top-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .top-actions button {
+        flex: 1;
+      }
+
+      .top-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .top-actions button {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: 0.3s;
+        background: #ddd;
+        color: #333;
+      }
+
+      /* active button */
+      .top-actions button.active {
+        background: #0d6efd;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+      }
+      .search_btn {
+        background-color: #0d6c4b;
+        color: #fff;
+      }
+      .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+      }
+
+      .loader-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 16px;
+        text-align: center;
+        min-width: 220px;
+      }
+
+      .spinner {
+        width: 55px;
+        height: 55px;
+        border: 6px solid #ddd;
+        border-top: 6px solid #198754;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: auto;
+      }
+
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loader-box p {
+        margin-top: 15px;
+        font-size: 18px;
+        font-weight: 600;
+      }
     </style>
   </head>
 
@@ -92,22 +172,25 @@
         <img class="logo" src="logo.png" alt="tsct" />
       </div>
       <h2>TSCT ID Card</h2>
+      <div class="top-actions">
+        <button
+          id="createBtn"
+          type="button"
+          class="active"
+          onclick="showCreateMember()"
+        >
+          Create New Member
+        </button>
 
-      <div class="form-box">
-        <div class="inner_form_box">
-          <input type="text" id="name" placeholder="పూర్తి పేరు" />
-          <input type="text" id="job" placeholder="ఉద్యోగం" />
-          <input type="text" id="empid" placeholder="ఎంప్లాయి ఐడి" />
-          <input type="text" id="school" placeholder="పాఠశాల" />
-          <input type="text" id="mandal" placeholder="మండలం" />
-          <input type="text" id="district" placeholder="జిల్లా" />
-          <input type="text" id="mobile" placeholder="సెల్ నెంబర్" />
-          <!-- <button type="button" onclick="searchMember()">Search Member</button> -->
-
-          <input type="file" id="photo" accept="image/*" />
-        </div>
-
-        <!-- <h3>Search Member</h3>
+        <button id="existingBtn" type="button" onclick="showSearchMember()">
+          Already Member? Download ID Card
+        </button>
+      </div>
+      <!-- search section -->
+      <div id="searchSection" style="display: none">
+        <h3 style="margin-bottom: 15px; color: #d5890c">
+          Already Member Download ID Card
+        </h3>
 
         <input
           type="text"
@@ -115,23 +198,112 @@
           placeholder="Mobile Number / TSCT ID"
         />
 
-        <button type="button" onclick="searchMember()">Search Member</button>
+        <button type="button" onclick="searchMember()" class="search_btn">
+          Search Member
+        </button>
+      </div>
 
-        <hr style="margin: 20px 0" /> -->
+      <div id="createMemberSection">
+        <div class="form-box">
+          <h4 style="margin-bottom: 15px; color: #d5890c">
+            Create new member card
+          </h4>
+          <div class="inner_form_box">
+            <input type="text" id="name" placeholder="పూర్తి పేరు" />
+            <input type="text" id="job" placeholder="ఉద్యోగం" />
+            <input type="text" id="empid" placeholder="ఎంప్లాయి ఐడి" />
+            <input type="text" id="school" placeholder="పాఠశాల" />
+            <input type="text" id="mandal" placeholder="మండలం" />
+            <input type="text" id="district" placeholder="జిల్లా" />
+            <input type="text" id="mobile" placeholder="సెల్ నెంబర్" />
+            <!-- <button type="button" onclick="searchMember()">Search Member</button> -->
 
-        <button class="generate" onclick="generateCard()">Generate Card</button>
+            <input type="file" id="photo" accept="image/*" />
+          </div>
 
-        <button class="download" onclick="downloadCard()">Download PNG</button>
+          <button class="generate" onclick="generateCard()">
+            Generate Card
+          </button>
+          <!-- 
+          <button class="download" onclick="downloadCard()">
+            Download PNG
+          </button>
 
-        <button class="print" onclick="editCard()">Edit Card</button>
+          <button class="print" onclick="editCard()">Edit Card</button> -->
+        </div>
       </div>
 
       <div class="preview">
         <canvas id="cardCanvas"></canvas>
       </div>
+
+      <div id="cardActions" style="display: none; margin-top: 15px">
+        <button class="download" onclick="downloadCard()">Download PNG</button>
+
+        <button class="print" onclick="editCard()">Edit Details</button>
+      </div>
+    </div>
+
+    <div id="loader" class="loader-overlay" style="display: none">
+      <div class="loader-box">
+        <div class="spinner"></div>
+
+        <p>Searching Member...</p>
+      </div>
     </div>
 
     <script>
+      function showSearchMember() {
+        document.getElementById("createMemberSection").style.display = "none";
+
+        document.getElementById("searchSection").style.display = "block";
+
+        // active state
+        document.getElementById("createBtn").classList.remove("active");
+
+        document.getElementById("existingBtn").classList.add("active");
+      }
+
+      function showCreateMember() {
+        document.getElementById("createMemberSection").style.display = "block";
+
+        document.getElementById("searchSection").style.display = "none";
+
+        // show form again
+        document.querySelector(".inner_form_box").style.display = "block";
+
+        // clear form
+        document.getElementById("name").value = "";
+
+        document.getElementById("job").value = "";
+
+        document.getElementById("empid").value = "";
+
+        document.getElementById("school").value = "";
+
+        document.getElementById("mandal").value = "";
+
+        document.getElementById("district").value = "";
+
+        document.getElementById("mobile").value = "";
+
+        document.getElementById("photo").value = "";
+
+        // reset mode
+        generatedTSCTId = null;
+
+        isEditMode = false;
+
+        // active state
+        document.getElementById("existingBtn").classList.remove("active");
+
+        document.getElementById("createBtn").classList.add("active");
+
+        // hide old actions
+        document.getElementById("cardActions").style.display = "none";
+        drawTemplate();
+      }
+
       const canvas = document.getElementById("cardCanvas");
       const ctx = canvas.getContext("2d");
 
@@ -139,6 +311,7 @@
 
       // same member ki same ID maintain
       let generatedTSCTId = null;
+      let isEditMode = false;
 
       // template image
       const template = new Image();
@@ -160,8 +333,6 @@
       }
 
       function generateCard() {
-        drawTemplate();
-
         const name = document.getElementById("name").value;
 
         const job = document.getElementById("job").value;
@@ -176,51 +347,15 @@
 
         const mobile = document.getElementById("mobile").value;
 
-        // first time matrame ID create avvali
-
-        // text styling
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 38px Arial";
-
-        // field alignment
-        ctx.fillText(name, 265, 265);
-        ctx.fillText(job, 265, 318);
-        ctx.fillText(empid, 265, 375);
-        ctx.fillText(school, 265, 430);
-        ctx.fillText(mandal, 265, 485);
-        ctx.fillText(district, 265, 540);
-        ctx.fillText(mobile, 265, 610);
-
-        // TSCT ID
-        ctx.font = "bold 40px Arial";
-        ctx.fillText(generatedTSCTId, 730, 635);
-
-        // photo upload
-        const photoInput = document.getElementById("photo");
-
-        if (photoInput.files[0]) {
-          const reader = new FileReader();
-
-          reader.onload = function (e) {
-            const img = new Image();
-
-            img.onload = function () {
-              ctx.drawImage(img, 895, 80, 165, 220);
-            };
-
-            img.src = e.target.result;
-          };
-
-          reader.readAsDataURL(photoInput.files[0]);
-        }
-
-        // form hide
-        document.querySelector(".inner_form_box").style.display = "none";
         fetch(
           "https://script.google.com/macros/s/AKfycbxjdNk7k1iBmtTjflDlAsWoQAu7eTXJI_p22dOto37m94kymOZqTM1jenEYd8gm2FFqHg/exec",
           {
             method: "POST",
             body: new URLSearchParams({
+              action: isEditMode ? "update" : "save",
+
+              tsctId: generatedTSCTId,
+
               name,
               job,
               empid,
@@ -235,30 +370,45 @@
           .then((data) => {
             generatedTSCTId = data.tsctId;
 
+            isEditMode = true;
+
             lastMobileNumber = mobile;
 
             // redraw card
             drawTemplate();
 
             ctx.fillStyle = "#000";
+
             ctx.font = "bold 38px Arial";
 
             ctx.fillText(name, 265, 265);
+
             ctx.fillText(job, 265, 318);
+
             ctx.fillText(empid, 265, 375);
+
             ctx.fillText(school, 265, 430);
+
             ctx.fillText(mandal, 265, 485);
+
             ctx.fillText(district, 265, 540);
+
             ctx.fillText(mobile, 265, 610);
 
             ctx.font = "bold 40px Arial";
 
             ctx.fillText(generatedTSCTId, 730, 635);
+
+            document.querySelector(".inner_form_box").style.display = "none";
+
+            document.getElementById("cardActions").style.display = "block";
+          })
+          .catch((err) => {
+            console.error(err);
+
+            alert("Save failed");
           });
-
-        console.log("Saved to Google Sheet");
       }
-
       // download PNG
       function downloadCard() {
         const link = document.createElement("a");
@@ -272,8 +422,19 @@
 
       // edit same card
       function editCard() {
+        // only show form
+        document.getElementById("createMemberSection").style.display = "block";
+
+        document.getElementById("searchSection").style.display = "none";
+
         document.querySelector(".inner_form_box").style.display = "block";
 
+        // active tab
+        document.getElementById("existingBtn").classList.remove("active");
+
+        document.getElementById("createBtn").classList.add("active");
+
+        // DO NOT clear fields
         window.scrollTo({
           top: 0,
           behavior: "smooth",
@@ -285,61 +446,76 @@
 
         if (!searchValue) {
           alert("Enter Mobile Number or TSCT ID");
+
           return;
         }
 
-        // hidden iframe trick (CORS avoid)
-        const form = document.createElement("form");
+        document.getElementById("loader").style.display = "flex";
 
-        form.method = "POST";
-        form.action =
-          "https://script.google.com/macros/s/AKfycbxjdNk7k1iBmtTjflDlAsWoQAu7eTXJI_p22dOto37m94kymOZqTM1jenEYd8gm2FFqHg/exec";
-
-        form.target = "hiddenFrame";
-
-        form.style.display = "none";
-
-        const actionInput = document.createElement("input");
-
-        actionInput.name = "action";
-
-        actionInput.value = "search";
-
-        form.appendChild(actionInput);
-
-        const searchInput = document.createElement("input");
-
-        searchInput.name = "search";
-
-        searchInput.value = searchValue;
-
-        form.appendChild(searchInput);
-
-        const iframe = document.createElement("iframe");
-
-        iframe.name = "hiddenFrame";
-
-        iframe.style.display = "none";
-
-        document.body.appendChild(iframe);
-
-        document.body.appendChild(form);
-
-        iframe.onload = function () {
-          try {
-            const text = iframe.contentDocument.body.innerText;
-
-            const data = JSON.parse(text);
-
+        fetch(
+          "https://script.google.com/macros/s/AKfycbxjdNk7k1iBmtTjflDlAsWoQAu7eTXJI_p22dOto37m94kymOZqTM1jenEYd8gm2FFqHg/exec",
+          {
+            method: "POST",
+            body: new URLSearchParams({
+              action: "search",
+              search: searchValue,
+            }),
+          },
+        )
+          .then((response) => response.json())
+          .then((data) => {
             if (!data.found) {
+              // alert("Member not found");
+              document.getElementById("loader").style.display = "none";
+
               alert("Member not found");
 
               return;
             }
 
+            // keep same TSCT ID
             generatedTSCTId = data.tsctId;
+            isEditMode = true;
 
             lastMobileNumber = data.mobile;
+
+            // redraw template
+            drawTemplate();
+
+            // text style
+            ctx.fillStyle = "#000";
+
+            ctx.font = "bold 38px Arial";
+
+            // card fields
+            ctx.fillText(data.name, 265, 265);
+
+            ctx.fillText(data.job, 265, 318);
+
+            ctx.fillText(data.empid, 265, 375);
+
+            ctx.fillText(data.school, 265, 430);
+
+            ctx.fillText(data.mandal, 265, 485);
+
+            ctx.fillText(data.district, 265, 540);
+
+            ctx.fillText(data.mobile, 265, 610);
+
+            // TSCT ID
+            ctx.font = "bold 40px Arial";
+
+            ctx.fillText(data.tsctId, 730, 635);
+            document.getElementById("cardActions").style.display = "block";
+            // smooth scroll
+            setTimeout(() => {
+              window.scrollTo({
+                top: document.getElementById("cardCanvas").offsetTop - 20,
+                behavior: "smooth",
+              });
+            }, 300);
+            document.getElementById("loader").style.display = "none";
+            alert("Member Found");
 
             document.getElementById("name").value = data.name;
 
@@ -354,16 +530,14 @@
             document.getElementById("district").value = data.district;
 
             document.getElementById("mobile").value = data.mobile;
-
-            alert("Member found");
-          } catch (e) {
-            console.error(e);
+          })
+          .catch((error) => {
+            console.error(error);
+            document.getElementById("loader").style.display = "none";
 
             alert("Search failed");
-          }
-        };
-
-        form.submit();
+            alert("Search failed");
+          });
       }
 
       // next member
