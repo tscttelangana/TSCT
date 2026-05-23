@@ -221,7 +221,7 @@
             <input type="file" id="photo" accept="image/*" />
           </div>
 
-          <button class="generate" onclick="generateCard()">
+          <button id="generateBtn" class="generate" onclick="generateCard()">
             Generate Card
           </button>
           <!-- 
@@ -262,6 +262,9 @@
         document.getElementById("createBtn").classList.remove("active");
 
         document.getElementById("existingBtn").classList.add("active");
+
+        // clear canvas
+        resetCanvas();
       }
 
       function showCreateMember() {
@@ -301,7 +304,7 @@
 
         // hide old actions
         document.getElementById("cardActions").style.display = "none";
-        drawTemplate();
+        resetCanvas();
       }
 
       const canvas = document.getElementById("cardCanvas");
@@ -329,10 +332,17 @@
 
       function drawTemplate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(template, 0, 0);
+
+        ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
       }
 
       function generateCard() {
+        const generateBtn = document.getElementById("generateBtn");
+
+        generateBtn.disabled = true;
+
+        generateBtn.innerHTML = "⏳ Generating...";
+
         const name = document.getElementById("name").value;
 
         const job = document.getElementById("job").value;
@@ -377,36 +387,89 @@
             // redraw card
             drawTemplate();
 
-            ctx.fillStyle = "#000";
+            const photoInput = document.getElementById("photo");
 
-            ctx.font = "bold 38px Arial";
+            if (photoInput.files[0]) {
+              const reader = new FileReader();
 
-            ctx.fillText(name, 265, 265);
+              reader.onload = function (e) {
+                const img = new Image();
 
-            ctx.fillText(job, 265, 318);
+                img.onload = function () {
+                  // redraw template first
+                  drawTemplate();
 
-            ctx.fillText(empid, 265, 375);
+                  // text
+                  ctx.fillStyle = "#000";
 
-            ctx.fillText(school, 265, 430);
+                  ctx.font = "bold 38px Arial";
 
-            ctx.fillText(mandal, 265, 485);
+                  ctx.fillText(name, 265, 265);
 
-            ctx.fillText(district, 265, 540);
+                  ctx.fillText(job, 265, 318);
 
-            ctx.fillText(mobile, 265, 610);
+                  ctx.fillText(empid, 265, 375);
 
-            ctx.font = "bold 40px Arial";
+                  ctx.fillText(school, 265, 430);
 
-            ctx.fillText(generatedTSCTId, 730, 635);
+                  ctx.fillText(mandal, 265, 485);
+
+                  ctx.fillText(district, 265, 540);
+
+                  ctx.fillText(mobile, 265, 610);
+
+                  ctx.font = "bold 40px Arial";
+
+                  ctx.fillText(generatedTSCTId, 730, 635);
+
+                  // image
+                  ctx.drawImage(img, 895, 80, 165, 220);
+                };
+
+                img.src = e.target.result;
+              };
+
+              reader.readAsDataURL(photoInput.files[0]);
+            } else {
+              drawTemplate();
+
+              ctx.fillStyle = "#000";
+
+              ctx.font = "bold 38px Arial";
+
+              ctx.fillText(name, 265, 265);
+
+              ctx.fillText(job, 265, 318);
+
+              ctx.fillText(empid, 265, 375);
+
+              ctx.fillText(school, 265, 430);
+
+              ctx.fillText(mandal, 265, 485);
+
+              ctx.fillText(district, 265, 540);
+
+              ctx.fillText(mobile, 265, 610);
+
+              ctx.font = "bold 40px Arial";
+
+              ctx.fillText(generatedTSCTId, 730, 635);
+            }
 
             document.querySelector(".inner_form_box").style.display = "none";
 
             document.getElementById("cardActions").style.display = "block";
+            generateBtn.disabled = false;
+
+            generateBtn.innerHTML = "Generate Card";
           })
           .catch((err) => {
             console.error(err);
 
             alert("Save failed");
+            generateBtn.disabled = false;
+
+            generateBtn.innerHTML = "Generate Card";
           });
       }
       // download PNG
@@ -540,6 +603,15 @@
           });
       }
 
+      function resetCanvas() {
+        generatedTSCTId = null;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawTemplate();
+
+        document.getElementById("cardActions").style.display = "none";
+      }
       // next member
     </script>
   </body>
